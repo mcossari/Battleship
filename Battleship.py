@@ -1,7 +1,11 @@
+# Matt Cossari Python Project 10/15/2024
+
 import pygame
-import random
-# Initialize Pygame
+from assets.entities import place_ship, create_grid, draw_grid, check_victory
+from assets.sounds.sounds import splash, explode
+
 pygame.init()
+
 
 # Set up display
 screen_width, screen_height = 600, 600
@@ -18,26 +22,12 @@ GRAY = (200, 200, 200)
 grid_size = 10
 cell_size = screen_width // grid_size
 
-def place_ship(grid, ship_length):
-    placed = False
-    while not placed:
-        direction = random.choice(["horizontal", "vertical"])
-        row = random.randint(0, grid_size - 1)
-        col = random.randint(0, grid_size - 1)
+grid = create_grid(grid_size)
 
-        if direction == "horizontal" and col + ship_length <= grid_size:
-            # Check if space is available
-            if all(grid[row][c] == 0 for c in range(col, col + ship_length)):
-                # Place ship
-                for c in range(col, col + ship_length):
-                    grid[row][c] = 1
-                placed = True
-
-        elif direction == "vertical" and row + ship_length <= grid_size:
-            if all(grid[r][col] == 0 for r in range(row, row + ship_length)):
-                for r in range(row, row + ship_length):
-                    grid[r][col] = 1
-                placed = True
+place_ship(grid, 6, grid_size) # aircraft carrier
+place_ship(grid, 2, grid_size) # Skiff
+place_ship(grid, 4, grid_size) # Submarine
+place_ship(grid, 5 , grid_size) # Battleship
 
 # Game loop
 running = True
@@ -46,21 +36,28 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-        # Get mouse position
+
             mouse_x, mouse_y = pygame.mouse.get_pos()
             col = mouse_x // cell_size
             row = mouse_y // cell_size
-            print(f"Clicked on row {row}, col {col}")
+            # print(f"Clicked on row {row}, col {col}")
+            if grid[row][col] == 1:
+                print("Hit!")
+                explode()
+                grid[row][col] = 2
+            elif grid[row][col] == 2:
+                print("You've already hit this location!")
+            elif grid[row][col] == 0:
+                print("Miss!")
+                splash()
+                grid[row][col] = 3
 
-
-    # Fill the screen with white
     screen.fill(WHITE)
 
+    #draw_ships(pass the coords of the ships somehow)
+    draw_grid(grid, grid_size, WHITE, BLUE, RED, GRAY, cell_size, screen)
 
-    # Draw the grid
-    for row in range(grid_size):
-        for col in range(grid_size):
-            pygame.draw.rect(screen, GRAY, (col * cell_size, row * cell_size, cell_size, cell_size), 1)
+    running = check_victory(grid,grid_size)
 
     pygame.display.update()
 
